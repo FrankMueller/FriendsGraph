@@ -21,7 +21,7 @@ import org.jhotdraw.util.*;
 import socialGraph.figures.*;
 
 /**
- * An {@link ApplicationModel} which creates a the set of {@code Action}s available in the {@code SocialGraphApplet}.
+ * An {@link ApplicationModel} which creates a the set of {@code Action}s available in the {@code SocialGraphApplication}.
  */
 public class SocialGraphApplicationModel extends DefaultApplicationModel
 {
@@ -43,7 +43,7 @@ public class SocialGraphApplicationModel extends DefaultApplicationModel
     }
 
     /**
-     * Returns an {@code ActionMap} with the set of actions available in the {@code SocialGraphApplet}.
+     * Returns an {@code ActionMap} with the set of actions available in the {@code SocialGraphApplication}.
      */
     @Override
     public ActionMap createActionMap(Application application, @Nullable View view) 

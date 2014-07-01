@@ -4,6 +4,8 @@ import java.util.*;
 
 import org.jhotdraw.draw.*;
 import org.jhotdraw.draw.connector.LocatorConnector;
+import org.jhotdraw.draw.event.FigureAdapter;
+import org.jhotdraw.draw.event.FigureEvent;
 import org.jhotdraw.draw.handle.BoundsOutlineHandle;
 import org.jhotdraw.draw.handle.ConnectorHandle;
 import org.jhotdraw.draw.handle.Handle;
@@ -13,6 +15,7 @@ import org.jhotdraw.draw.locator.RelativeLocator;
 import org.jhotdraw.geom.*;
 import org.jhotdraw.samples.pert.figures.SeparatorLineFigure;
 import org.jhotdraw.util.*;
+
 import static org.jhotdraw.draw.AttributeKeys.*;
 
 /**
@@ -21,8 +24,31 @@ import static org.jhotdraw.draw.AttributeKeys.*;
 public class PersonFigure extends GraphicalCompositeFigure 
 {
 	private static final long serialVersionUID = -7525019931278322586L;
+	private static final int coverageDepthLimit = 1;
 	private HashSet<FriendshipFigure> friendships;  
     
+    private static class RejectEmptyNameAdapter extends FigureAdapter
+    {
+        private PersonFigure target;
+
+        public RejectEmptyNameAdapter(PersonFigure target)
+        {
+            this.target = target;
+        }
+
+        @Override
+        public void attributeChanged(FigureEvent e) 
+        {        	
+        	//If the name was changed to an empty string, then reset the name to the value before the edit
+        	String newValue = (String)e.getNewValue();
+        	newValue = newValue.trim();
+System.out.println("'" + newValue + "'");
+        	if (newValue.isEmpty())
+        		 target.setLastName((String)e.getOldValue());
+        }
+    }
+
+	
     /**
      * Initializes a new instance.
      */
@@ -51,13 +77,14 @@ public class PersonFigure extends GraphicalCompositeFigure
 
         TextFigure firstNameFigure;
         nameCompartment.add(firstNameFigure = new TextFigure());
-        firstNameFigure.set(FONT_BOLD, true);
+        firstNameFigure.set(FONT_BOLD, false);
         firstNameFigure.setAttributeEnabled(FONT_BOLD, false);
 
         TextFigure lastNameFigure;
         nameCompartment.add(lastNameFigure = new TextFigure());
-        lastNameFigure.set(FONT_BOLD, false);
+        lastNameFigure.set(FONT_BOLD, true);
         lastNameFigure.setAttributeEnabled(FONT_BOLD, false);
+        lastNameFigure.addFigureListener(new RejectEmptyNameAdapter(this));
 
         TextFigure friendCountFigure;
         attributeCompartment.add(friendCountFigure = new TextFigure());
@@ -148,7 +175,8 @@ public class PersonFigure extends GraphicalCompositeFigure
     }
 
     /**
-     * Sets the number of friends of the person represented by this instance.
+     * Sets the number of friends of the person represented by this instance and recomputes
+     * the coverage of this instance and all persons within coverage.
      * 
      * @param The number of friends.
      */
@@ -156,14 +184,19 @@ public class PersonFigure extends GraphicalCompositeFigure
     {
     	if (getFriendCount() != newValue)
     	{
+    		//Set the new value
     		willChange();
     		getFriendCountFigure().setText(Integer.toString(newValue));
     		changed();
+
+    		//Update the displayed coverage
+    		recomputeCoverage();
     		
+    		//Update the displayed coverage of all 
             List<PersonFigure> coverageList = new LinkedList<PersonFigure>();
-            buildCoverageList(coverageList, 0, 2);
+            appendFriendsWithinCoverageToList(coverageList, 0);
     		for	(PersonFigure friend : coverageList)
-    			friend.updateCoverage(1);
+    			friend.recomputeCoverage();
     	}
     }
     
@@ -216,25 +249,36 @@ public class PersonFigure extends GraphicalCompositeFigure
         }
     }
 
-    
-    private void updateCoverage(int range) 
+    /**
+     * Recomputes the coverage and updates the displayed coverage value.
+     */
+    private void recomputeCoverage() 
     {
         List<PersonFigure> coverageList = new LinkedList<PersonFigure>();
-        buildCoverageList(coverageList, 0, range);
+        appendFriendsWithinCoverageToList(coverageList, 0);
         coverageList.remove(this);
         
         setCoverage(coverageList.size());
     }
     
-    private void buildCoverageList(List<PersonFigure> coverageList, int depth, int depthLimit)
+    /**
+     * Appends all friends of the person represented by this instance to the specified list of person 
+     * {@code PersonFigure} who are within the coverage range starting from the current coverage level.
+     * 
+     * @param The list of {@code PersonFigure} to append person within the coverage range to
+     * @param The current depth of the coverage search (recursion depth)
+     */
+    private void appendFriendsWithinCoverageToList(List<PersonFigure> coverageList, int coverageDepth)
     {
         for (PersonFigure friend : getFriends())
         {
+        	//Add friends which are not already in the list
         	if (!coverageList.contains(friend))
     			coverageList.add(friend);
 
-        	if (depth < depthLimit)
-        		friend.buildCoverageList(coverageList, depth+1, depthLimit);
+        	//If the next hierarchy level is still within coverage range then append the friends of the current friend too 
+        	if (coverageDepth < coverageDepthLimit)
+        		friend.appendFriendsWithinCoverageToList(coverageList, coverageDepth + 1);
         }    
     }
 
@@ -286,6 +330,8 @@ public class PersonFigure extends GraphicalCompositeFigure
     {
         PersonFigure clone = (PersonFigure) super.clone();
         clone.friendships = new HashSet<FriendshipFigure>();
+        clone.getLastNameFigure().addFigureListener(new RejectEmptyNameAdapter(clone));
+
         return clone;
     }
 
