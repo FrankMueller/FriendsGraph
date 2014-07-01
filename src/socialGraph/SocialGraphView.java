@@ -1,0 +1,187 @@
+package socialGraph;
+
+import org.jhotdraw.app.*;
+import org.jhotdraw.draw.*;
+import org.jhotdraw.draw.action.*;
+import org.jhotdraw.gui.*;
+import org.jhotdraw.gui.URIChooser;
+import org.jhotdraw.util.*;
+
+import java.awt.*;
+import java.io.*;
+import java.net.URI;
+
+import javax.swing.*;
+import javax.swing.border.*;
+
+public class SocialGraphView extends AbstractView 
+{
+	public final static String GRID_VISIBLE_PROPERTY = "gridVisible";
+	private static final long serialVersionUID = -1627923996217477954L;
+    private DrawingEditor editor;
+
+    /**
+     * Creates a new view.
+     */
+    public SocialGraphView() 
+    {
+        initComponents();
+
+        scrollPane.setLayout(new PlacardScrollPaneLayout());
+        scrollPane.setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        setEditor(new DefaultDrawingEditor());
+        view.setDrawing(createDrawing());
+
+        ResourceBundleUtil labels = ResourceBundleUtil.getBundle("org.jhotdraw.draw.Labels");
+
+        //Create a button for the zoom adjustment
+        javax.swing.AbstractButton zoomButton = ButtonFactory.createZoomButton(view);
+        zoomButton.putClientProperty("Quaqua.Button.style", "placard");
+        zoomButton.putClientProperty("Quaqua.Component.visualMargin", new Insets(0, 0, 0, 0));
+        zoomButton.setFont(UIManager.getFont("SmallSystemFont"));
+        
+        //Create a button for the grid style
+        javax.swing.AbstractButton toggleGridButton = ButtonFactory.createToggleGridButton(view);
+        toggleGridButton.putClientProperty("Quaqua.Button.style", "placard");
+        toggleGridButton.putClientProperty("Quaqua.Component.visualMargin", new Insets(0, 0, 0, 0));
+        toggleGridButton.setFont(UIManager.getFont("SmallSystemFont"));
+        labels.configureToolBarButton(toggleGridButton, "view.toggleGrid.placard");
+        
+        //Create a panel, add the zoom and grid style button and add the panel to the lower left corner of the scroll pane
+        JPanel placardPanel = new JPanel(new BorderLayout());
+        placardPanel.add(zoomButton, BorderLayout.WEST);
+        placardPanel.add(toggleGridButton, BorderLayout.EAST);
+        scrollPane.add(placardPanel, JScrollPane.LOWER_LEFT_CORNER);
+    }
+
+    /**
+     * Clears the view.
+     */
+    @Override
+    public void clear() 
+    {
+        final Drawing newDrawing = createDrawing();
+
+        view.setDrawing(newDrawing);
+    }
+    
+    /**
+     * Creates a new Drawing for this view.
+     */
+    protected Drawing createDrawing() 
+    {
+        return new DefaultDrawing();
+    }
+
+    /**
+     * Sets the editor to use to manipulate the view.
+     * 
+     * @param The editor.
+     */
+    public void setEditor(DrawingEditor newValue) 
+    {
+        DrawingEditor oldValue = editor;
+        if (oldValue != null)
+            oldValue.remove(view);
+        
+        editor = newValue;
+        if (newValue != null)
+            newValue.add(view);
+    }
+    
+    /**
+     * Gets the editor used to manipulate the view.
+     * 
+     * @return The editor.
+     */
+    public DrawingEditor getEditor() 
+    {
+        return editor;
+    }
+
+    /**
+     * Sets a value indicating whether the grid is visible or not.
+     * 
+     * @param {@code true} if the grid is visible, otherwise {@code false}.
+     */
+    public void setGridVisible(boolean newValue) 
+    {
+        boolean oldValue = isGridVisible();
+        view.setConstrainerVisible(newValue);
+        
+        firePropertyChange(GRID_VISIBLE_PROPERTY, oldValue, newValue);
+        preferences.putBoolean("view.gridVisible", newValue);
+    }
+
+    /**
+     * Gets a value indicating whether the grid is visible or not.
+     * 
+     * @return {@code true} if the grid is visible, otherwise {@code false}.
+     */
+    public boolean isGridVisible() 
+    {
+        return view.isConstrainerVisible();
+    }
+
+    /**
+     * Sets the scale factor of this view. 
+     * 
+     * @param The scale factor of this view.
+     */
+    public void setScaleFactor(double newValue) 
+    {
+        double oldValue = getScaleFactor();
+        view.setScaleFactor(newValue);
+
+        firePropertyChange("scaleFactor", oldValue, newValue);
+        preferences.putDouble("view.scaleFactor", newValue);
+    }
+    
+    /**
+     * Gets the scale factor of this view. 
+     * 
+     * @return The scale factor of this view.
+     */
+    public double getScaleFactor() 
+    {
+        return view.getScaleFactor();
+    }
+
+	@Override
+	public void write(URI uri, URIChooser chooser) throws IOException 
+	{
+		throw new IOException("Serialization is not supported!");
+	}
+
+	@Override
+	public void read(URI uri, URIChooser chooser) throws IOException 
+	{
+		throw new IOException("Deserialization is not supported!");
+	}
+	
+    /** This method is called from within the constructor to
+     * initialize the form.
+     * WARNING: Do NOT modify this code. The content of this method is
+     * always regenerated by the Form Editor.
+     */
+    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
+    private void initComponents() 
+    {
+        scrollPane = new javax.swing.JScrollPane();
+        view = new org.jhotdraw.draw.DefaultDrawingView();
+
+        setLayout(new java.awt.BorderLayout());
+
+        scrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
+        scrollPane.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+        scrollPane.setViewportView(view);
+
+        add(scrollPane, java.awt.BorderLayout.CENTER);
+    }// </editor-fold>//GEN-END:initComponents
+    // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JScrollPane scrollPane;
+    private org.jhotdraw.draw.DefaultDrawingView view;
+    // End of variables declaration//GEN-END:variables
+
+}

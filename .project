@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <projectDescription>
-	<name>FriendsGraph</name>
+	<name>Gruppe_22</name>
 	<comment></comment>
 	<projects>
+		<project>JHotDraw7.6</project>
 	</projects>
 	<buildSpec>
 		<buildCommand>
