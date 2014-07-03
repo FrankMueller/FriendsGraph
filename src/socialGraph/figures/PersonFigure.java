@@ -42,7 +42,7 @@ public class PersonFigure extends GraphicalCompositeFigure
         	//If the name was changed to an empty string, then reset the name to the value before the edit
         	String newValue = (String)e.getNewValue();
         	newValue = newValue.trim();
-System.out.println("'" + newValue + "'");
+
         	if (newValue.isEmpty())
         		 target.setLastName((String)e.getOldValue());
         }
