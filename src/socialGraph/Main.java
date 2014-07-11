@@ -2,6 +2,11 @@ package socialGraph;
 
 import org.jhotdraw.app.*;
 
+/**
+ * @author Ghadh Altaiari    - 322844
+ * @author Felix Held        - 350194
+ * @author Frank Müller      - 200407
+ */
 public class Main
 {    
     /** Creates a new instance. */
